@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="style2.css">
+  <title> SUDOKU</title>
+</head>
+<body>
+<h1 class = "title"> WELCOME TO GERALD BLAKE'S AWESOME MINI SUDOKU *-* </h1>
+		<ul id="navbar">
+		
+		    <li><a href = "http://www.cs.okstate.edu/~geralab/">HOME</a></li>
+			<li><a href = "miniSoudoku.html">MINI SUDOKU</a></li>
+			<li><a href = "https://www.youtube.com">YOUTUBE</a></li>
+		</ul>
+<h1>SUDOKU TABLE</h1>
+<h4 id="readout"><pre class = "normal">Welcome and Good Luck!!</pre></h4>
+<h4 id="out"><pre class = "normal">OUTPUT</pre></h4>
+
+
+<script>
+
+   //blocks array   
+   var b1 = new Array();
+   window.onload = createBoard(6,6,b1);
+   //create drop down list
+
+//print();
+
+function reloadBoard(gameNum,maxRow,maxCol)
+{
+   var num = document.getElementById("selection").value;
+   document.getElementById("readout").innerHTML = "<pre class = \"normal\">["+num +"]</pre>";
+    var httpRequest = new XMLHttpRequest();
+
+	var url = "sudokuServer.php?gameNum=" + gameNum;
+
+	httpRequest.open("GET", url, false);
+
+	httpRequest.send(null);
+   var defaultGame ="020000000020054100100064200043300010";
+
+
+	var response = JSON.parse(httpRequest.responseText);
+
+	var initialConfig = response.initialConfig;
+    var newGame = (initialConfig !== undefined)?initialConfig:defaultGame;
+   var u =0;
+   //enable all elements
+   for(var row =0; row < maxRow ;row++) 
+   {		
+		for(var col = 0; col < maxCol;col++)
+		{
+			var myID=row.toString() +":" +col.toString();
+			document.getElementById(myID).disabled = false;
+		}
+	}
+   for(var row =0; row < maxRow ;row++) 
+   {	
+		for(var col = 0; col < maxCol;col++)
+		{
+		   var myID=row.toString() +":" +col.toString();
+		   var token = (newGame.charAt(u)=='0')?'':newGame.charAt(u);
+			u++;
+			
+			document.getElementById(myID).value = token;
+			if(document.getElementById(myID).value!='')
+			{
+				document.getElementById(myID).disabled = true;
+			}
+		}
+	}
+
+	// Debug print
+
+	//document.getElementById("readout").innerHTML = initialConfig;
+}
+function createBoard(maxRow,maxCol,b1)
+{
+
+var s ="000000000000000000000000000000000000";
+ 
+		document.write ("<div class = \"center\"><table>");
+       document.write('<pre>     \t\t\t\t\t<select name="selection" id="selection" onchange = "reloadBoard(this.value,6,6)"></pre>');
+	   document.write('<option value="none">NONE</option>');
+	   for(var gn = 0; gn < 20;gn++)
+	   {
+			document.write('<option value="'+ gn +'">GAME ' + gn + '</option>');
+	   }
+	   document.write('</select><br/><br/><br/>');
+
+	var u=0;
+	var count = 0;
+                        	
+		for(var row =0; row < maxRow ;row++) 
+		{
+			document.write("<tr>");
+			for(var col = 0; col < maxCol;col++)
+			{
+			    var token = (s.charAt(u)=='0')?'':s.charAt(u);
+				var myID=row.toString() +":" +col.toString();
+				if((col % 3)== 0  && (row % 2) == 0)
+				{
+					b1[count] = myID;
+					count++;
+				}
+				document.write('<td><input id="' + myID + '" type="text" maxlength="1" size="1" onKeyUp="checkBoard(this,b1)" value = "'+ token +'"></input></td>');
+				
+					document.getElementById(myID).disabled = true;
+				
+				u++;
+				
+		//	document.getElementById(myID).innerHTML = temp;
+			if(((col+1) %3)==0)
+			{
+				document.write ("<td class ='c'><pre>   </pre></td>");
+			}
+			}
+			if(((row+1) %2)==0)
+			{
+				document.write ("</tr><td class ='c'><pre>\n</pre></td></tr>");
+			}
+			else{
+			document.write ("</tr>");
+			}
+		}
+		document.write ("</table><\div>");
+		
+}
+
+function validateInput(theIn,max)
+{
+    theIn = parseInt(theIn);
+	if(theIn > 0 && theIn <= max)
+	{
+		return true;
+	}
+	return false;
+}
+
+	function checkBoard(theID,b1)
+	{
+		var theA = (theID.id).toString().split(":");
+		
+		if(!checkRow(theID.id) || !checkCol(theID.id) || !checkBlock(theID.id,b1) 
+		||!validateInput(document.getElementById(theID.id).value,6))
+		{ 
+			document.getElementById(theID.id).value = '';
+			document.getElementById("readout").innerHTML = "<pre class = \"normal\"> MOVE NOT ALLOWED AT ROW,COL:["+(parseInt(theA[0])+1) +" , " +(parseInt(theA[1])+1)+ "]</pre>";
+		}
+		else
+		{
+		
+			document.getElementById("readout").innerHTML = "<pre class = \"normal\">"+
+		 " MOVE ACCEPTED AT ROW,COL [" + (parseInt(theA[0])+1) + "," + (parseInt(theA[1])+1)+ "]</pre>";
+		}
+		if(hasWon())
+		{
+		document.getElementById("readout").innerHTML = "<pre class = \"normal\"> CONGRADULATIONS"
+		+" YOU AWESOME DUDE YOU WON </pre>";
+		}
+		
+	
+	}
+
+
+
+function checkRow(theID)
+{
+
+		var theA = (theID).toString().split(":");
+		var IDrow = parseInt(theA[0]);
+		var IDcol = parseInt(theA[1]);
+		for(var col = 0; col < 6;col++)
+		{
+			if(col != IDcol)
+			{
+				var idp = IDrow.toString() + ":" + col.toString();
+				if((document.getElementById(idp).value == document.getElementById(theID).value)
+				&&(document.getElementById(idp).value!=''))
+				{
+					return false;
+				}
+			}
+		}
+	
+	return true;
+}
+
+function checkCol(theID)
+{
+		var theA = (theID).toString().split(":");
+		var IDrow = parseInt(theA[0]);
+		var IDcol = parseInt(theA[1]);
+		for(var row = 0; row < 6;row++)
+		{
+			if(row != IDrow)
+			{
+				var idp = row.toString() + ":" + IDcol.toString();
+				if((document.getElementById(idp).value == document.getElementById(theID).value)
+				&&(document.getElementById(idp).value!=''))
+				{
+					return false;
+				}
+			}
+		}
+	
+	return true;
+}
+function print()
+{
+	for(var i = 0; i < b1.length;i++)
+	{
+		console.log(b1[i]);
+	}
+}
+function checkBlock(theID,b1)
+{
+     var block = findBlock(theID,b1);
+	 var theB = (block).toString().split(":");
+	 var r = parseInt(theB[0]);
+   	 var c = parseInt(theB[1]);
+	for(var row =r,  rc=0; rc < 2 ;row++,rc++) 
+	{
+		for(var col = c,  cc=0; cc < 3;col++,cc++)
+		{
+			var idp = row.toString() + ":" + col.toString();
+			var A = document.getElementById(theID).value
+			var B = document.getElementById(idp).value
+			if(idp !=theID && A == B)
+			{
+				return false
+			}
+			
+		}
+		
+	
+	}
+	return true;
+
+}
+function findBlock(theID,b1)
+{
+	var count = 0;
+	var b2 = 0;
+	for(var i = 0; i < b1.length;i++)
+	{
+	    var theB = (b1[i]).toString().split(":");
+		var r = parseInt(theB[0]);
+		var c = parseInt(theB[1]);
+		for(var row =r,  rc=0; rc < 2 ;row++,rc++) 
+		{
+		
+			for(var col = c,  cc=0; cc < 3;col++,cc++)
+			{
+				var idp = row.toString() + ":" + col.toString();
+	
+				if(idp==theID)
+				{
+					return b1[i];
+				}
+		
+			}
+			
+		
+		}	
+		
+	}
+
+}
+function hasWon()
+{
+ var maxRow = 6;
+ var maxCol = 6;
+	for(var row =0; row < maxRow ;row++) 
+	{
+			
+			for(var col = 0; col < maxCol;col++)
+			{
+			    var theID=row.toString() +":" +col.toString();
+				if(document.getElementById(theID).value =='')
+				{
+					return false;
+				}
+			}
+	}
+	return true;
+}
+
+	 
+</script>
+</body>
+</html>
